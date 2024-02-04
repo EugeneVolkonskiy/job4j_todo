@@ -3,6 +3,7 @@ package ru.job4j.todo.repository;
 import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 import ru.job4j.todo.model.Task;
 
@@ -11,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @AllArgsConstructor
@@ -34,12 +36,12 @@ public class HbmTaskRepository implements TaskRepository {
     }
 
     @Override
-    public Task findById(int id) {
+    public Optional<Task> findById(int id) {
         Session session = sf.openSession();
-        Task result = null;
+        Optional<Task> result = Optional.empty();
         try {
             session.getTransaction();
-            result = session.get(Task.class, id);
+            result = Optional.of(session.get(Task.class, id));
             session.getTransaction().commit();
         } catch (Exception e) {
             session.getTransaction().rollback();
@@ -50,57 +52,63 @@ public class HbmTaskRepository implements TaskRepository {
     }
 
     @Override
-    public void deleteById(int id) {
+    public boolean deleteById(int id) {
         Session session = sf.openSession();
+        boolean result = false;
         try {
             session.beginTransaction();
-            session.createQuery(
+            Query query = session.createQuery(
                             "DELETE Task WHERE id = :fId")
-                    .setParameter("fId", id).executeUpdate();
+                    .setParameter("fId", id);
+            result = query.executeUpdate() > 0;
             session.getTransaction().commit();
         } catch (Exception e) {
             session.getTransaction().rollback();
         } finally {
             session.close();
         }
+        return result;
     }
 
     @Override
-    public void update(Task task) {
+    public boolean update(Task task) {
         Session session = sf.openSession();
+        boolean result = false;
         try {
             session.beginTransaction();
-            session.createQuery(
-                            "UPDATE Task SET title = :fTitle, description = :fDescription, created = :fCreated, done = :fDone WHERE id = :fId")
+            Query query = session.createQuery(
+                            "UPDATE Task SET title = :fTitle, description = :fDescription, done = :fDone WHERE id = :fId")
                     .setParameter("fTitle", task.getTitle())
                     .setParameter("fDescription", task.getDescription())
-                    .setParameter("fDescription", task.getDescription())
-                    .setParameter("fCreated", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                     .setParameter("fDone", task.isDone())
-                    .setParameter("fId", task.getId())
-                    .executeUpdate();
+                    .setParameter("fId", task.getId());
+            result = query.executeUpdate() > 0;
             session.getTransaction().commit();
         } catch (Exception e) {
             session.getTransaction().rollback();
         } finally {
             session.close();
         }
+        return result;
     }
 
     @Override
-    public void updateDoneParameter(int id) {
+    public boolean updateDoneParameter(int id) {
         Session session = sf.openSession();
+        boolean result = false;
         try {
             session.beginTransaction();
-            session.createQuery(
+            Query query = session.createQuery(
                             "UPDATE Task SET done = true WHERE id = :fId")
-                    .setParameter("fId", id).executeUpdate();
+                    .setParameter("fId", id);
+            result = query.executeUpdate() > 0;
             session.getTransaction().commit();
         } catch (Exception e) {
             session.getTransaction().rollback();
         } finally {
             session.close();
         }
+        return result;
     }
 
     @Override
@@ -142,6 +150,23 @@ public class HbmTaskRepository implements TaskRepository {
         try {
             session.beginTransaction();
             result = session.createQuery("FROM Task WHERE created > :fDate", Task.class)
+                    .setParameter("fDate", LocalDateTime.now().minusDays(1)).list();
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
+        }
+        return result;
+    }
+
+    @Override
+    public Collection<Task> findOldNotDoneTasks() {
+        Session session = sf.openSession();
+        List<Task> result = new ArrayList<>();
+        try {
+            session.beginTransaction();
+            result = session.createQuery("FROM Task WHERE created < :fDate AND done = false", Task.class)
                     .setParameter("fDate", LocalDateTime.now().minusDays(1)).list();
             session.getTransaction().commit();
         } catch (Exception e) {

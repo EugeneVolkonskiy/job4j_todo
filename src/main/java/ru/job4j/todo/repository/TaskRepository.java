@@ -3,22 +3,26 @@ package ru.job4j.todo.repository;
 import ru.job4j.todo.model.Task;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface TaskRepository {
 
     Task save(Task task);
 
-    Task findById(int id);
+    Optional<Task> findById(int id);
 
-    void deleteById(int id);
+    boolean deleteById(int id);
 
-    void update(Task task);
+    boolean update(Task task);
 
-    void updateDoneParameter(int id);
+    boolean updateDoneParameter(int id);
 
     Collection<Task> findAll();
 
     Collection<Task> findDoneTasks();
 
     Collection<Task> findNewTasks();
-}
+
+    Collection<Task> findOldNotDoneTasks();
+
+    }

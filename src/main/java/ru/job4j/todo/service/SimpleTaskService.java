@@ -6,6 +6,7 @@ import ru.job4j.todo.model.Task;
 import ru.job4j.todo.repository.TaskRepository;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -19,23 +20,23 @@ public class SimpleTaskService implements TaskService {
     }
 
     @Override
-    public Task findById(int id) {
+    public Optional<Task> findById(int id) {
         return taskRepository.findById(id);
     }
 
     @Override
-    public void deleteById(int id) {
-        taskRepository.deleteById(id);
+    public boolean deleteById(int id) {
+        return taskRepository.deleteById(id);
     }
 
     @Override
-    public void update(Task task) {
-        taskRepository.update(task);
+    public boolean update(Task task) {
+        return taskRepository.update(task);
     }
 
     @Override
-    public void updateDoneParameter(int id) {
-        taskRepository.updateDoneParameter(id);
+    public boolean updateDoneParameter(int id) {
+        return taskRepository.updateDoneParameter(id);
     }
 
     @Override
@@ -51,5 +52,10 @@ public class SimpleTaskService implements TaskService {
     @Override
     public Collection<Task> findNewTasks() {
         return taskRepository.findNewTasks();
+    }
+
+    @Override
+    public Collection<Task> findOldNotDoneTasks() {
+        return taskRepository.findOldNotDoneTasks();
     }
 }
