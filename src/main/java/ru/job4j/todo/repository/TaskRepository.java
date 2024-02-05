@@ -24,5 +24,4 @@ public interface TaskRepository {
     Collection<Task> findNewTasks();
 
     Collection<Task> findOldNotDoneTasks();
-
-    }
+}
