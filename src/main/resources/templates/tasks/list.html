@@ -18,6 +18,7 @@
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Описание</th>
+                    <th scope="col">Пользователь</th>
                     <th scope="col">Дата создания</th>
                     <th scope="col">Состояние</th>
                 </tr>
@@ -26,6 +27,7 @@
                 <tr th:each="task: ${tasks}">
                     <td th:text="${task.id}" />
                     <td><a th:text="${task.title}" th:href="@{/tasks/{taskId}(taskId=${task.id})}"></a></td>
+                    <td th:text="${task.user.login}"/>
                     <td th:text="${task.created}"/>
                     <td th:text="${task.done}"/>
                 </tr>
