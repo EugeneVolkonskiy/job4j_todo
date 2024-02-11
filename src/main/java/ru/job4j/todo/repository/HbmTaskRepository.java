@@ -24,7 +24,7 @@ public class HbmTaskRepository implements TaskRepository {
     @Override
     public Optional<Task> findById(int id) {
         return crudRepository.optional(
-                "FROM Task WHERE id = :fId", Task.class,
+                "FROM Task t JOIN FETCH t.priority WHERE t.id = :fId", Task.class,
                 Map.of("fId", id)
         );
     }
@@ -39,10 +39,12 @@ public class HbmTaskRepository implements TaskRepository {
     @Override
     public boolean update(Task task) {
         return crudRepository.bool(
-                "UPDATE Task SET title = :fTitle, description = :fDescription, done = :fDone WHERE id = :fId",
+                "UPDATE Task SET title = :fTitle, description = :fDescription, done = :fDone,"
+                        + " priority_id = :fPriorityId WHERE id = :fId",
                 Map.of("fTitle", task.getTitle(),
                         "fDescription", task.getDescription(),
                         "fDone", task.isDone(),
+                        "fPriorityId", task.getPriority().getId(),
                         "fId", task.getId())
         );
     }
@@ -57,18 +59,18 @@ public class HbmTaskRepository implements TaskRepository {
 
     @Override
     public Collection<Task> findAll() {
-        return crudRepository.query("FROM Task", Task.class);
+        return crudRepository.query("FROM Task t JOIN FETCH t.priority", Task.class);
     }
 
     @Override
     public Collection<Task> findDoneTasks() {
-        return crudRepository.query("FROM Task WHERE done = true", Task.class);
+        return crudRepository.query("FROM Task t JOIN FETCH t.priority WHERE done = true", Task.class);
     }
 
     @Override
     public Collection<Task> findNewTasks() {
         return crudRepository.query(
-                "FROM Task WHERE created > :fDate", Task.class,
+                "FROM Task t JOIN FETCH t.priority WHERE created > :fDate", Task.class,
                 Map.of("fDate", LocalDateTime.now().minusDays(1))
         );
     }
@@ -76,7 +78,7 @@ public class HbmTaskRepository implements TaskRepository {
     @Override
     public Collection<Task> findOldNotDoneTasks() {
         return crudRepository.query(
-                "FROM Task WHERE created < :fDate AND done = false", Task.class,
+                "FROM Task t JOIN FETCH t.priority WHERE created < :fDate AND done = false", Task.class,
                 Map.of("fDate", LocalDateTime.now().minusDays(1))
         );
     }

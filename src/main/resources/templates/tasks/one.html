@@ -35,6 +35,10 @@
                     <b>Состояние: </b>
                     <p th:text="${task.done}"/>
                 </div>
+                <div class="mb-3">
+                    <b>Приоритет: </b>
+                    <p th:text="${task.priority.name}"/>
+                </div>
             </div>
             <div class="mb-3 row">
                 <div class="col-6"></div>
