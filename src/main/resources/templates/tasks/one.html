@@ -21,7 +21,7 @@
                 <div class="mb-3">
                     <label for="description" class="form-label"><b>Описание</b></label>
                     <textarea class="form-control" id="description" name="description" th:field="*{description}"
-                              rows="10" readonly></textarea>
+                              rows="5" readonly></textarea>
                 </div>
                 <div class="mb-3">
                     <b>Пользователь: </b>
@@ -38,6 +38,10 @@
                 <div class="mb-3">
                     <b>Приоритет: </b>
                     <p th:text="${task.priority.name}"/>
+                </div>
+                <div class="mb-3">
+                    <b>Категория: </b>
+                    <p th:each="category : ${task.categories}" th:text="${category.name}"/>
                 </div>
             </div>
             <div class="mb-3 row">

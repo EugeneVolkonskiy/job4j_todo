@@ -6,11 +6,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.todo.model.Task;
 import ru.job4j.todo.model.User;
+import ru.job4j.todo.service.CategoryService;
 import ru.job4j.todo.service.PriorityService;
 import ru.job4j.todo.service.TaskService;
 
 import javax.servlet.http.HttpSession;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/tasks")
@@ -19,6 +21,7 @@ public class TaskController {
 
     private final TaskService taskService;
     private final PriorityService priorityService;
+    private final CategoryService categoryService;
 
     @GetMapping("/list")
     public String getAll(Model model) {
@@ -29,12 +32,14 @@ public class TaskController {
     @GetMapping("/create")
     public String getCreationPage(Model model) {
         model.addAttribute("priorities", priorityService.findAll());
+        model.addAttribute("categories", categoryService.findAll());
         return "tasks/create";
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Task task, HttpSession session) {
+    public String create(@ModelAttribute Task task, HttpSession session, @RequestParam Set<Integer> categoriesId) {
         task.setUser((User) session.getAttribute("user"));
+        task.setCategories(categoryService.findById(categoriesId));
         taskService.save(task);
         return "redirect:/tasks/list";
     }
@@ -77,11 +82,14 @@ public class TaskController {
         }
         model.addAttribute("task", task.get());
         model.addAttribute("priorities", priorityService.findAll());
+        model.addAttribute("categories", categoryService.findAll());
         return "tasks/update";
     }
 
     @PostMapping("/update")
-    public String updateTask(@ModelAttribute Task task, Model model) {
+    public String updateTask(@ModelAttribute Task task, Model model, @RequestParam Set<Integer> categoriesId, HttpSession session) {
+        task.setUser((User) session.getAttribute("user"));
+        task.setCategories(categoryService.findById(categoriesId));
         if (!taskService.update(task)) {
             model.addAttribute("message", "Не удалось изменить задачу");
             return "errors/fail";
