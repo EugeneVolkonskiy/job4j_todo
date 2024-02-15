@@ -1,6 +1,7 @@
 package ru.job4j.todo.service;
 
 import ru.job4j.todo.model.Task;
+import ru.job4j.todo.model.User;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,4 +25,8 @@ public interface TaskService {
     Collection<Task> findNewTasks();
 
     Collection<Task> findOldNotDoneTasks();
+
+    Collection<Task> getTasksWithTimeZone(Collection<Task> tasks, User user);
+
+    Task getTaskWithTimeZone(Task task, User user);
 }

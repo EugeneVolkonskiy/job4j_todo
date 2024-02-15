@@ -10,7 +10,7 @@ import ru.job4j.todo.service.CategoryService;
 import ru.job4j.todo.service.PriorityService;
 import ru.job4j.todo.service.TaskService;
 
-import javax.servlet.http.HttpSession;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,8 +24,9 @@ public class TaskController {
     private final CategoryService categoryService;
 
     @GetMapping("/list")
-    public String getAll(Model model) {
-        model.addAttribute("tasks", taskService.findAll());
+    public String getAll(Model model, @SessionAttribute User user) {
+        Collection<Task> tasksWithTimeZone = taskService.getTasksWithTimeZone(taskService.findAll(), user);
+        model.addAttribute("tasks", tasksWithTimeZone);
         return "tasks/list";
     }
 
@@ -37,21 +38,22 @@ public class TaskController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Task task, HttpSession session, @RequestParam Set<Integer> categoriesId) {
-        task.setUser((User) session.getAttribute("user"));
+    public String create(@ModelAttribute Task task, @SessionAttribute User user, @RequestParam Set<Integer> categoriesId) {
+        task.setUser((user));
         task.setCategories(categoryService.findById(categoriesId));
         taskService.save(task);
         return "redirect:/tasks/list";
     }
 
     @GetMapping("/{id}")
-    public String getById(Model model, @PathVariable int id) {
+    public String getById(Model model, @PathVariable int id, @SessionAttribute User user) {
         Optional<Task> task = taskService.findById(id);
         if (task.isEmpty()) {
             model.addAttribute("message", "Задача с указанным id не найдена");
             return "errors/fail";
         }
-        model.addAttribute("task", task.get());
+        Task taskWithTimeZone = taskService.getTaskWithTimeZone(task.get(), user);
+        model.addAttribute("task", taskWithTimeZone);
         return "tasks/one";
     }
 
@@ -87,8 +89,8 @@ public class TaskController {
     }
 
     @PostMapping("/update")
-    public String updateTask(@ModelAttribute Task task, Model model, @RequestParam Set<Integer> categoriesId, HttpSession session) {
-        task.setUser((User) session.getAttribute("user"));
+    public String updateTask(@ModelAttribute Task task, Model model, @RequestParam Set<Integer> categoriesId, @SessionAttribute User user) {
+        task.setUser(user);
         task.setCategories(categoryService.findById(categoriesId));
         if (!taskService.update(task)) {
             model.addAttribute("message", "Не удалось изменить задачу");
@@ -98,20 +100,23 @@ public class TaskController {
     }
 
     @GetMapping("/done")
-    public String getDoneTasks(Model model) {
-        model.addAttribute("tasks", taskService.findDoneTasks());
+    public String getDoneTasks(Model model, @SessionAttribute User user) {
+        Collection<Task> doneTasksWithTimeZone = taskService.getTasksWithTimeZone(taskService.findDoneTasks(), user);
+        model.addAttribute("tasks", doneTasksWithTimeZone);
         return "tasks/list";
     }
 
     @GetMapping("/new")
-    public String getNewTasks(Model model) {
-        model.addAttribute("tasks", taskService.findNewTasks());
+    public String getNewTasks(Model model, @SessionAttribute User user) {
+        Collection<Task> newTasksWithTimeZone = taskService.getTasksWithTimeZone(taskService.findNewTasks(), user);
+        model.addAttribute("tasks", newTasksWithTimeZone);
         return "tasks/list";
     }
 
     @GetMapping("/old_not_done")
-    public String getOldNotDoneTasks(Model model) {
-        model.addAttribute("tasks", taskService.findOldNotDoneTasks());
+    public String getOldNotDoneTasks(Model model, @SessionAttribute User user) {
+        Collection<Task> oldNotDoneTasksWithTimeZone = taskService.getTasksWithTimeZone(taskService.findOldNotDoneTasks(), user);
+        model.addAttribute("tasks", oldNotDoneTasksWithTimeZone);
         return "tasks/list";
     }
 }

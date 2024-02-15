@@ -3,8 +3,11 @@ package ru.job4j.todo.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.job4j.todo.model.Task;
+import ru.job4j.todo.model.User;
 import ru.job4j.todo.repository.TaskRepository;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -57,6 +60,22 @@ public class SimpleTaskService implements TaskService {
     @Override
     public Collection<Task> findOldNotDoneTasks() {
         return taskRepository.findOldNotDoneTasks();
+    }
+
+    @Override
+    public Collection<Task> getTasksWithTimeZone(Collection<Task> tasks, User user) {
+        for (Task task : tasks) {
+            ZonedDateTime taskCreated = task.getCreated().atZone(ZoneId.of("UTC"));
+            task.setCreated(taskCreated.withZoneSameInstant(ZoneId.of(user.getTimezone())).toLocalDateTime());
+        }
+        return tasks;
+    }
+
+    @Override
+    public Task getTaskWithTimeZone(Task task, User user) {
+            ZonedDateTime taskCreated = task.getCreated().atZone(ZoneId.of("UTC"));
+            task.setCreated(taskCreated.withZoneSameInstant(ZoneId.of(user.getTimezone())).toLocalDateTime());
+        return task;
     }
 }
 
